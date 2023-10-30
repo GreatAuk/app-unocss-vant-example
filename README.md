@@ -1,40 +1,61 @@
-# app-unocss-vant
+# app-unocss-vant-example
 
-This template should help get you started developing with Vue 3 in Vite.
+## UnoCSS + Vant 移动端适配方案
 
-## Recommended IDE Setup
+ `unocss` 移动端适配方案：`@unocss/preset-rem-to-px` + `postcss-px-to-viewport-8-plugin`
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+```ts
+// uno.config.ts
+import { defineConfig } from 'unocss'
+import presetRemToPx from '@unocss/preset-rem-to-px'
 
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin) to make the TypeScript language service aware of `.vue` types.
-
-If the standalone TypeScript plugin doesn't feel fast enough to you, Volar has also implemented a [Take Over Mode](https://github.com/johnsoncodehk/volar/discussions/471#discussioncomment-1361669) that is more performant. You can enable it by the following steps:
-
-1. Disable the built-in TypeScript Extension
-    1) Run `Extensions: Show Built-in Extensions` from VSCode's command palette
-    2) Find `TypeScript and JavaScript Language Features`, right click and select `Disable (Workspace)`
-2. Reload the VSCode window by running `Developer: Reload Window` from the command palette.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vitejs.dev/config/).
-
-## Project Setup
-
-```sh
-npm install
+export default defineConfig({
+  presets: [
+    presetRemToPx({
+    })
+  ]
+})
 ```
 
-### Compile and Hot-Reload for Development
+```js
+// pnpm add -D postcss-px-to-viewport-8-plugin
 
-```sh
-npm run dev
+// postcss.config.js
+module.exports = {
+  plugins: {
+    'postcss-px-to-viewport-8-plugin': {
+      viewportWidth: 375 // 设计图以375px为基准
+    }
+  }
+}
 ```
 
-### Type-Check, Compile and Minify for Production
+解决 `vant` 设计稿 `375px` 的问题。
 
-```sh
-npm run build
+```js
+// postcss.config.js
+module.exports = () => {
+  return {
+    plugins: {
+      "postcss-px-to-viewport-8-plugin": {
+        viewportWidth: function (file) {
+          return file && file.includes("node_modules/vant") ? 375 : 750; // 针对 vant 特殊处理
+        },
+      },
+    },
+  };
+};
 ```
+
+使用 `postcss-px-to-viewport-8-plugin` 作为移动端适配方案时，如果需要 `@unocss/transformer-directives` 完全生效，需要安装插件 `@unocss/postcss`
+
+```js
+// postcss.config.js
+module.exports = {
+  plugins: {
+    '@unocss/postcss': {}, // 安装这个插件是为了支持 unocss 的 @apply, @screen and theme() directives.
+  },
+}
+```
+
+###
